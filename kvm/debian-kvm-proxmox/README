@@ -1,0 +1,14 @@
+
+
+1. localization: 
+    can setup the LANG, country and locale ----> #d-i debian-installer/locale string <en_US>
+    can do it separately: 
+        #d-i debian-installer/language string en
+        #d-i debian-installer/country string NL
+        #d-i debian-installer/locale string en_GB.UTF-8
+    can specify multiple locales: #d-i localechooser/supported-locales multiselect en_US.UTF-8, nl_NL.UTF-8
+    
+    setting up the keymap: #d-i keyboard-configuration/xkb-keymap select us
+
+2. NETWORK CONFIG:
+    
