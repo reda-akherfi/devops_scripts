@@ -29,5 +29,102 @@
     ADDITIONAL INFO to stop the prompting:
         #d-i netcfg/wireless_wep string
         #d-i netcfg/wireless_wpa string
-        
+MIRROR SETTINGS:
+    setup the mirrors using HTTP or FTP:
+        setting up the county: manual in the  case of FTP
+            #d-i mirror/country string [US - manual]
+        d-i mirror/http/hostname string [ftp-http].us.debian.org
+        d-i mirror/http/directory string /debian
+        d-i mirror/http/proxy string
+    setting up the suite of software to install:
+        #d-i mirror/suite string stable [testing - unstable]
+    setting up the suite for the installer itself
+        #d-i mirror/udeb/suite string testing
+USERS SETUP:
+    activate the root login and the regular user as well:
+        #d-i passwd/root-login boolean true
+        #d-i passwd/make-user boolean true
+    root passwd in clear text:
+        # Root password, either in clear text
+        #d-i passwd/root-password password r00tme
+        #d-i passwd/root-password-again password r00tme
+    the regular user setup:
+        #d-i passwd/user-fullname string Debian User
+        #d-i passwd/username string debian
+        #d-i passwd/user-password password insecure
+        #d-i passwd/user-password-again password insecure
+        #d-i passwd/user-default-groups string audio cdrom video sudo adm dip plugdev netdev
+
+CLOCK SETUP:
+    setting up the hardware to use UTC:
+        d-i clock-setup/utc boolean true
+    the timezone:
+        d-i time/zone string Africa/Casablanca
+    d-i clock-setup/ntp boolean true
+
+PARTITIONING:
+    # Choose the partitioning method
+    d-i partman-auto/method string regular
+    # Select the disk to partition
+    # In a KVM environment, the virtual disk is often /dev/vda, but verify your setup.
+    d-i partman-auto/disk string /dev/vda
+    # Choose the 'atomic' predefined recipe for a single partition scheme
+    d-i partman-auto/choose_recipe select atomic
+    # Automatically confirm partitioning changes
+    d-i partman/confirm boolean true
+    d-i partman/confirm_nooverwrite boolean true
+    d-i partman/choose_partition select finish
+    d-i partman/confirm_write_new_label boolean true
+
+BASE SYSTEM:
+    ### Base system installation
+    # Configure APT to not install recommended packages by default. Use of this
+    # option can result in an incomplete system and should only be used by very
+    # experienced users.
+    d-i base-installer/install-recommends boolean true
+
+    # The kernel image (meta) package to be installed; "none" can be used if no
+    # kernel is to be installed.
+    d-i base-installer/kernel/image string linux-image-686
+
+APT SETUP:
+    do no scan additional media
+        d-i apt-setup/cdrom/set-first boolean false
+    do not install non-free firmware
+        d-i apt-setup/non-free-firmware boolean false
+    dont install non-free software but install the contrib's
+        d-i apt-setup/non-free boolean true
+        d-i apt-setup/contrib boolean true
+    disable the DVD/CDROM entry in the sources.list file
+        d-i apt-setup/disable-cdrom-entries boolean true
+    use a mirror
+        d-i apt-setup/use_mirror boolean true
+    setup the sodtware mirrors:
+        d-i apt-setup/services-select multiselect security, updates
+        d-i apt-setup/security_host string security.debian.org
+
+PKG SELECTION:
+    tasksel tasksel/first multiselect ssh, standard
+III. additional stuff:
+    non-free firmware can set be set to never be loaded
+        #d-i hw-detect/load_firmware boolean true        
+
+BOOTLOADER SETUP:
+    d-i grub-installer/only_debian boolean true
+    d-i grub-installer/with_other_os boolean true
+    d-i grub-installer/bootdev  string default
+
+FINISHING TOUCHES:
+    # Avoid that last message about the install being complete.
+    d-i finish-install/reboot_in_progress note
+    d-i user-setup/allow-password-weak boolean true
+
+
+XXX to see later
+    1. more complicated partitioning schemes [LVM, RAID, separate parts...]
+    2. additional repos after the APT repos's setup is done
+    3. # Individual additional packages to install
+        #d-i pkgsel/include string openssh-server build-essential
+    4. running custom commands at the beginning of the installation and before the  installation finishes
+
 
