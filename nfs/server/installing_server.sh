@@ -11,4 +11,10 @@ else
 	exit 1
 fi
 
-
+case $DISTRO in
+    debian)
+        sudo apt update -y
+        sudo apt upgrade -y
+        sudo apt install nfs-kernel-server -y
+        ;;
+esac
