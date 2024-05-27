@@ -3,3 +3,46 @@
 # History
 CIFS: released by Mico in 1996 [deprecated] 
 SMB 1980 --> CIFS 1996 --> SMB2.0 2006 ---> SMB3.0 2012
+
+# the server
+    it uses the samba pkg [a guy reverse-engineered the protocol in 1992]
+    samba can do more that making *shares* avail over the network [auth, printing...]
+    samba's funcs are implemented using 2 daemons: smbd [authen author, file and print srvs...] , nmbd [name resolution, service anouncement ...]
+    it runs entirely as a user program!!! XXX
+    with each req to the listening sock, smbd forks itself [after authen and author] and run the new proc as the user specified in the req [it adds file locking for windows compatibility as well to the std ACL of UNIX]
+    the config files are in: /etc/samba/smb.conf  [test it with `testparm -v`]
+## authen  --> must be done with a user account
+    opt 1)
+        local authen: create a local user account on the UNIX server 
+        use the `sudo smbpasswd -a <user>` cmd to set the passwd for the user windows style
+        outside users cannot change the passwds without remote access to the server
+        in the config ---> `security  = <local-unix-user>` sets the user account
+                            `workgroup = <smth>`
+    opt 2) 
+        we do not want to maintain a separate DB of all the smbpasswd hashes...
+        see kerberos; LDAP; sssd .....
+## config-ing shares
+    1. each share needs its own stanza
+        [movies]
+            path = /opt/shit/tits
+            read only = no
+        # in this case SAMBA users see the following `\\sambaserver\tits`
+    2. sharing home dirs:  $use the magic stanza [homes]$
+        [homes]
+            comment = all home dirs
+            browseable = no           # it would be hidden in the network [gotta look for it]
+            valid users = %S          # each one can access their respective home dirs
+                    #### tangent  [CSV]
+                        valid users  can be = to  --> usernames[spock], groups[captains]
+                                wildcards[ja*], @AUTHENTICATED_USERS, nobody|guest[guests],
+                                = @allusers, !morocco
+                                = %S current auth user
+                        or any combination of the above
+                    #### endtangent
+            read only = no 
+        # this config would allow kirk to access `\\smbserver\kirk` as its home dir
+    3. for nested shares: the config of the sub-share overwrites the parent one.
+        e.g. sharing [homes] and a sub-share inside homes
+            XXX [homes] is a catch-all share/opt  [last resort]
+        
+
