@@ -3,22 +3,22 @@
 ## Script to install docker-ce on Rocky Linux
 ## Run using `sudo rocky-docker.sh`
 
-# Ensuring "GROUP" variable has not been set elsewhere
+# # Ensuring "GROUP" variable has not been set elsewhere
 unset GROUP
 
 echo "Removing podman and installing Docker CE"
-dnf remove -y podman buildah
-dnf install -y yum-utils
-yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
-dnf install -y docker-ce docker-ce-cli containerd.io
+sudo dnf remove -y podman buildah
+sudo dnf install -y yum-utils
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
 
 echo "Setting up docker service"
-systemctl enable docker
-systemctl start docker
-systemctl status docker
+sudo systemctl enable docker
+sudo systemctl start docker
+# sudo systemctl status docker
 
 echo "Adding permissions to current user for docker, attempting to reload group membership"
-usermod -aG docker -a $USER
+sudo usermod -aG docker jkirk 
 GROUP=$(id -g)
 newgrp docker
 newgrp $GROUP
