@@ -150,7 +150,8 @@ clear
 ############################################################
 # chrooting to the live env
 echo -e "installing software"
-pacstrap -K /mnt base linux linux-firmware intel-ucode networkmanager sudo grub efibootmgr
+pacstrap -K /mnt base linux linux-firmware intel-ucode networkmanager sudo grub efibootmgr \
+    linux-headers linux-lts linux-lts-headers
 echo -e "all software has been installed successfully !\n"
 sleep 3
 
