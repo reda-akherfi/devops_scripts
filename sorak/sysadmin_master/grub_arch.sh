@@ -6,7 +6,7 @@
 ############################################################
 # setting up the font inside the live env
 read -p "Is the text small for your taste Mr Redaa? [Y/n] " text_small
-if [ $text_small = "n" ]
+if [ $text_small = "no" ]
 then
     echo -e "Ok, we will continue using this font size Mr Reda\n"
     sleep 3
