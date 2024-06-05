@@ -1,91 +1,6 @@
 #!/bin/bash
 
 
-source ./bash_colors_source_me_everywhere.sh
-
-function transition_echo() {
-    clear;
-    echo -e "$1\n";
-    sleep 3;
-}
-
-function targeting_disk() {
-    # choosing the drive
-    disk_is_selected=0
-    until [ $disk_is_selected -eq 1 ]
-    do
-        transition_echo "${GREEN}choosing the drive${WHITE}"
-        lsblk
-        read -p "${GREEN}enter the name of the drive , beware of typos !!! e.g ${RED}/dev/bla${WHITE} " disk_name
-        transition_echo "${GREEN}the disk you selected is${RED} $disk_name ${WHITE}\n"
-        read -p "${YELLOW}Is this selection the right one ? [yes/No]${WHITE}" user_selected_disk
-        if [ $user_selected_disk = "yes" ]
-        then
-            disk_is_selected=1
-            transition_echo "${GREEN}you chose yes${WHITE}"
-        else 
-            transition_echo "${GREEN}you chose to repeat the selection${WHITE}"
-        fi
-    done
-}
-
-function partition_lvm() {
-    # $ parted [options] [device [command [options...]...]]
-    # partitionning the disk
-    partitionning_successful=0
-    until [ $partitionning_successful -eq 1 ]
-    do
-        transition_echo "partitioning using parted"
-        # creating the gpt label
-        transition_echo "creating the gpt label"
-        parted --fix --script $disk_name mklabel "gpt"
-        # making the efi partition
-        transition_echo "making the efi partition"
-        parted --fix --script $disk_name mkpart  "EFIREDA" "fat32" 1MiB 301MiB
-        # setting the bootable flag for the efi partition
-        transition_echo "setting the bootable flag for the efi partition"
-        parted --fix --script $disk_name set 1 esp on
-        # making the root partition as the rest of the disk
-        transition_echo "making the one LVM partition"
-        parted --fix --script $disk_name mkpart  "ROOTREDA" "ext4" 301MiB 100%
-        transition_echo "creating the ${GREEN}physical volume${WHITE}"
-        pvcreate "${disk_name}"2
-        transition_echo "creating the ${GREEN} volume group${WHITE}"
-        vgcreate REDALVM "${disk_name}2"
-        transition_echo "creating the ${GREEN} logical volume${WHITE}"
-        lvcreate -L 6G -n ROOTREDALVM REDALVM
-        partitionning_successful=1
-        parted --script ${disk_name} print
-        sleep 5
-    done
-}
-
-function making_filesystems() {
-    # making the file system -- formatting
-    transition_echo "making the file system -- formatting"
-    # formatting the efi partition
-    transition_echo "formatting the efi partition in vfat 32"
-    mkfs.vfat -F32 -n "EFISYSTEM" "${disk_name}1"
-    # formatting the root partition 
-    transition_echo "formatting the root partition in ext4"
-    mkfs.ext4 -F -F -L "ROOT" "/dev/REDALVM/ROOTREDALVM"
-    clear
-}
-
-function mounting_stuff() {
-    # mounting the partitions
-    transition_echo "${GREEN}mounting the partitions${WHITE}"
-    # mouting the root parttion into /mnt
-    transition_echo "mouting the root parttion into /mnt"
-    mount -t ext4 /dev/REDALVM/ROOTREDALVM /mnt
-    # mounting the efi part to /mnt/boot
-    transition_echo "mounting the efi part to /mnt/boot"
-    mkdir /mnt/boot
-    mount -t vfat  ${disk_name}1 /mnt/boot
-    sleep 3
-    clear
-}
-
 ############################################################
 ### basic setup for the env itself
 ############################################################
@@ -133,11 +48,101 @@ clear
 
 ############################################################
 ### partitionning the drives
-#
-targeting_disk
-partition_lvm
-making_filesystems
-mounting_stuff
+############################################################
+# choosing the drive
+disk_is_selected=0
+until [ $disk_is_selected -eq 1 ]
+do
+    echo -e "choosing the drive\n"
+    sleep 3
+    lsblk
+    read -p "enter the name of the drive , beware of typos !!!  " disk_name
+    sleep 3
+    echo -e "the disk you selected is $disk_name \n"
+    read -p "Is this selection the right one ? [yes/No]" user_selected_disk
+    if [ $user_selected_disk = "yes" ]
+    then
+        disk_is_selected=1
+        echo -e "\nyou chose yes\n"
+        sleep 3
+        clear
+    else 
+        echo -e "you chose to repeat the selection \n"
+        sleep 3
+        clear
+    fi
+done
+
+# $ parted [options] [device [command [options...]...]]
+# partitionning the disk
+partitionning_successful=0
+until [ $partitionning_successful -eq 1 ]
+do
+    echo -e "partitionning the disk\n"
+    sleep 3
+    # use parted
+    echo -e "use parted\n"
+    # creating the gpt label
+    echo -e "creating the gpt label\n"
+    parted --fix --script $disk_name mklabel "gpt"
+    sleep 3
+    # making the efi partition
+    echo -e "making the efi partition\n"
+    sleep 3
+    parted --fix --script $disk_name mkpart  "EFIREDA" "fat32" 1MiB 301MiB
+    # setting the bootable flag for the efi partition
+    echo -e "setting the bootable flag for the efi partition\n"
+    sleep 3
+    parted --fix --script $disk_name set 1 esp on
+    # making the root partition as the rest of the disk
+    echo -e "making the root partition as the rest of the disk\n"
+    sleep 3
+    parted --fix --script $disk_name mkpart  "ROOTREDA" "ext4" 301MiB 100%
+    clear
+    partitionning_successful=1
+    parted --script ${disk_name} print
+###    read -p "is this partioning scheme acceptable? [yes/No] " user_partitioning_answer
+###    if [ $user_partitioning_answer = "yes" ]
+###    then
+###        echo -e "you have selected the cuurent partitionning scheme\n"
+###        partitionning_successful=1
+###        sleep 3
+###        clear
+###    else
+###        echo -e "something went wrong with the partitionning \n going at it again but you might want to rewrite the script\n"
+###        sleep 2
+###        clear
+###    fi
+    sleep 5
+done
+
+# making the file system -- formatting
+echo -e "making the file system -- formatting\n"
+sleep 3
+# formatting the efi partition
+echo -e "formatting the efi partition in vfat 32\n"
+sleep 3
+mkfs.vfat -F32 -n "EFISYSTEM" "${disk_name}1"
+# formatting the root partition 
+echo -e "formatting the root partition in ext4\n"
+sleep 3
+mkfs.ext4 -F -F -L "ROOT" "${disk_name}2"
+clear
+
+# mounting the partitions
+echo -e "mounting the partitions\n"
+sleep 3
+# mouting the root parttion into /mnt
+echo -e "mouting the root parttion into /mnt\n"
+sleep 3
+mount -t ext4 ${disk_name}2 /mnt
+# mounting the efi part to /mnt/boot
+echo -e "mounting the efi part to /mnt/boot\n"
+sleep 3
+mkdir /mnt/boot
+mount -t vfat  ${disk_name}1 /mnt/boot
+sleep 3
+clear
 
 
 ############################################################
@@ -146,7 +151,7 @@ mounting_stuff
 # chrooting to the live env
 echo -e "installing software"
 pacstrap -K /mnt base linux linux-firmware intel-ucode networkmanager sudo grub efibootmgr \
-    linux-headers linux-lts linux-lts-headers lvm2
+    linux-headers linux-lts linux-lts-headers
 echo -e "all software has been installed successfully !\n"
 sleep 3
 
@@ -228,13 +233,6 @@ cat <<EOF > /etc/hosts
 ::1       localhost
 127.0.1.1 archmc.localdomain archmc
 EOF
-
-clear
-echo -e "configuring mkinitcpio\n"
-sleep 2
-sed -i 's/^HOOKS.*/HOOKS=(base udev autodetect modconf block lvm2 filesystems keyboard fsck)' /etc/mkinitcpio.conf
-mkinitcpio -P
-
 echo -e "installing grub : the boot loader\n"
 grub-install --target=x86_64-efi   --efi-directory=/boot   --bootloader-id=REDABOOT
 echo -e "just install grub"

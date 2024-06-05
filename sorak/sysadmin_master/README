@@ -1,0 +1,13 @@
+
+a minimal function for coloring: red, green, yellow, white
+
+a func : transition    
+    clear
+    echo -e "ejvbiuebvi \n"
+    sleep 2
+
+setup LVM:
+    1 boot
+    1 LV root
+    setup grub and initramfs to look for lvm
+    make it into a funtion with params that we prompt the user for.
