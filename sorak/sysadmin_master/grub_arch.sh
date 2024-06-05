@@ -228,11 +228,14 @@ cat <<EOF > /etc/hosts
 ::1       localhost
 127.0.1.1 archmc.localdomain archmc
 EOF
-
+pacman -S --needed --noconfirm vim git terminus-font openssh
+systemctl enable --now sshd
+git clone https://github.com/reda-akherfi/dottas.git
+git clone https://github.com/reda-akherfi/devops_scripts.git
 clear
 echo -e "configuring mkinitcpio\n"
 sleep 2
-sed -i 's/^HOOKS.*/HOOKS=(base udev autodetect modconf block lvm2 filesystems keyboard fsck)' /etc/mkinitcpio.conf
+sed -i 's/^HOOKS.*/HOOKS=(base udev autodetect modconf block lvm2 filesystems keyboard fsck)/' /etc/mkinitcpio.conf
 mkinitcpio -P
 
 echo -e "installing grub : the boot loader\n"
